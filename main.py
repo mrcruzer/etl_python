@@ -114,3 +114,12 @@ if __name__ == "__main__":
         # Execute query create database    
     cursor.execute(sql_query)
     print("Opened database satisfactoriamente")
+    
+    try:
+        song_dataframe.to_sql("my_played_tracks", cursor, index=False, if_exists='append')
+    except:
+        print("la data existe en la DB")
+
+    #conexion.close()
+    #print("Close database successfully")
+    
