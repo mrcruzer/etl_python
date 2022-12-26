@@ -9,7 +9,7 @@ import datetime
 import pymysql
 
 USER = "diygabrielaa" 
-TOKEN = ""
+TOKEN = "BQD5YIGE_1BfmAHdNRIuT0Cx4h_xgp7iplZJu1N2iFvSIcSYBIlOSI4s43Hiz7kpqs2gAnQg7pajPI5eaSf0c7leeJYplXgtendlRnDhgaBS8nQUXfGbJqMhVnvKo1KV1M16Z1o5MDZItQCVlgDiWWOfK07pG7vKdL034uVlQkiUR0qa61k"
 
 
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     obteniendo = requests.get("https://api.spotify.com/v1/me/player/recently-played?after={time}".format(time=ayer_unix_timestamp), headers = headers)
     
     datos = obteniendo.json()
-    #print(datos)
+    print(datos)
     
         #Arrays for info
     song_names = []
@@ -99,6 +99,8 @@ if __name__ == "__main__":
         database='etl_played_tracks'
     )
     
+    engine = sqlalchemy.create_engine(conexion)
+    
     cursor = conexion.cursor()
     
         # Creation Table if not exists
@@ -116,7 +118,7 @@ if __name__ == "__main__":
     print("Opened database satisfactoriamente")
     
     try:
-        song_dataframe.to_sql("my_played_tracks", cursor, index=False, if_exists='append')
+        song_dataframe.to_sql("etl_played_tracks", engine, index=False, if_exists='append')
     except:
         print("la data existe en la DB")
 
