@@ -8,12 +8,12 @@ from datetime import datetime
 import datetime
 import pymysql
 
-USER = "diygabrielaa" 
-TOKEN = "BQD5YIGE_1BfmAHdNRIuT0Cx4h_xgp7iplZJu1N2iFvSIcSYBIlOSI4s43Hiz7kpqs2gAnQg7pajPI5eaSf0c7leeJYplXgtendlRnDhgaBS8nQUXfGbJqMhVnvKo1KV1M16Z1o5MDZItQCVlgDiWWOfK07pG7vKdL034uVlQkiUR0qa61k"
+USER = "31jclj74jujykp63nynogjsfvh4i" 
+TOKEN = "BQDAQxu9Qpvv6_ZeoymlEubkidYpjR7PcLAY3vJEe00QVf3_ceXi-1SOAakW7PqYemUgy1WNJI655tcNHQaVtZk7ltzLF1YBjgWtmbmHV-Zkp5xeXoD0koEKOP9E7Qz6Sa7YcI3v_7b0KnI-RTJuK2DBaj79I75RXDGdV1AoIQC_utElmX5mhELF44HQjKx-s2N0h4LT"
 
 
 
-def check_if_valid_data(df: pd.DataFrame) -> bool:
+def checking_valid_data(df: pd.DataFrame) -> bool:
     if df.empty:
         print("No songs downloaded.")
         return False 
@@ -28,14 +28,13 @@ def check_if_valid_data(df: pd.DataFrame) -> bool:
     if df.isnull().values.any():
         raise Exception("Null values found")
 
-    # Check that all timestamps are of yesterday's date
-    yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+    '''yesterday = datetime.datetime.now() - datetime.timedelta(days=2)
     yesterday = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    timestamps = df["timestamp"].tolist()
-    for timestamp in timestamps:
-        if datetime.datetime.strptime(timestamp, '%Y-%m-%d') != yesterday:
-            raise Exception("no existe data de ayer")
+    #timestamps = df["timestamp"].tolist()
+    #for timestamp in timestamps:
+     #   if datetime.datetime.strptime(timestamp, '%Y-%m-%d') != yesterday:
+      #      raise Exception("no existe data de ayer")'''
 
     return True
 
@@ -54,11 +53,12 @@ if __name__ == "__main__":
     hoy_unix_timestamp = int(hoy.timestamp()) * 1000
     #print(ayer_unix_timestamp)
     
-    # Get data yesterday
-    obteniendo = requests.get("https://api.spotify.com/v1/me/player/recently-played?after={time}".format(time=ayer_unix_timestamp), headers = headers)
+    # Get data
+    obteniendo = requests.get("https://api.spotify.com/v1/me/player/recently-played?limit=50&after={time}".format(time=ayer_unix_timestamp), headers = headers)
     
+    # transform data to json
     datos = obteniendo.json()
-    print(datos)
+    #print(datos)
     
         #Arrays for info
     song_names = []
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     print(song_dataframe)
     
     # Validando
-    if check_if_valid_data(song_dataframe):
+    if checking_valid_data(song_dataframe):
         print("Data validada, Procediendo")
 
     
@@ -96,12 +96,17 @@ if __name__ == "__main__":
         port=3308,
         user='root',
         password='root',
-        database='etl_played_tracks'
+        db='etl_played_tracks'
     )
     
-    engine = sqlalchemy.create_engine(conexion)
-    
     cursor = conexion.cursor()
+    
+    # Create engine, SQLALchemy
+    engine = create_engine("mysql+pymysql://{user}:{pw}@localhost:{port}/{db}"
+                       .format(user="root",
+                               pw="root",
+                               port = 3308,
+                               db="etl_played_tracks"))
     
         # Creation Table if not exists
     sql_query = """
@@ -117,6 +122,7 @@ if __name__ == "__main__":
     cursor.execute(sql_query)
     print("Opened database satisfactoriamente")
     
+    # passing dataframe to SQL Database table, etl_played_tracks
     try:
         song_dataframe.to_sql("etl_played_tracks", engine, index=False, if_exists='append')
     except:
